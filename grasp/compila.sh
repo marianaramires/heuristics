@@ -2,6 +2,6 @@
 
 echo "Compilando..."
 
-gcc -pedantic -g -o ./main.exe ./src/hash.c ./src/heap.c ./src/json.c ./src/kdtree.c ./main.c -lm
+g++ -pedantic -g -o ./main.exe ./src/grasp.cpp ./main.cpp -lm
 
-./main.exe municipios.json
+./main.exe

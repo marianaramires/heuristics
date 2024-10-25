@@ -1,4 +1,3 @@
-// GREEDY RANDOMIZED ADAPTIVE SEARCH PROCEDURES
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,7 +6,15 @@
 #include <time.h>
 #include <algorithm> 
 #include <iostream>
-#include "include/lib.h"
+#include "../include/lib.h"
+
+void Print_Solution(tsolution Solution){
+    for (int i = 0; i < Solution.item_id.size(); i++)
+    {
+        printf("%d, ", Solution.item_id[i]);
+    }
+    printf("\n");
+}
 
 void Update_Solution(tsolution Solution, tsolution Best_Solution) {
     if (Solution.value > Best_Solution.value)
@@ -26,6 +33,7 @@ int Partner_Check(int i, titem * itens, tsolution Solution){
     int aux, flag;
     int j = 0;
     int limit = itens[i].partners.size();
+    printf("PARTNER CHECK\n");
 
     while (j < limit)
     {
@@ -38,9 +46,10 @@ int Partner_Check(int i, titem * itens, tsolution Solution){
     return itens[i].value;
 }
 
-void Initialize_Candidate_Set(titem * itens, std::vector<int> Candidate_List, tsolution Solution, int Weight, int n){
+void Initialize_Candidate_Set(titem * itens, std::vector<int> &Candidate_List, tsolution &Solution, int Weight, int n){
     int flag;
     Candidate_List.clear();
+    printf("INITIALIZE CANDIDATE SET\n");
 
     for (int i = 0; i < n; i++)
     {
@@ -52,10 +61,11 @@ void Initialize_Candidate_Set(titem * itens, std::vector<int> Candidate_List, ts
     }  
 }
 
-void Values_Min_Max(titem * itens, std::vector<int> Candidate_List, tsolution Solution, int &min, int &max){
+void Values_Min_Max(titem * itens, std::vector<int> Candidate_List, tsolution &Solution, int &min, int &max){
     int aux;
     int v_min = itens[Candidate_List[0]].value;
     int v_max = itens[Candidate_List[0]].value;
+    printf("MIN MAX\n");
 
     for (int i = 0; i < Candidate_List.size(); i++)
     {
@@ -76,9 +86,10 @@ void Values_Min_Max(titem * itens, std::vector<int> Candidate_List, tsolution So
     max = v_max;
 }
 
-void Build_RCL(titem * itens, tsolution Solution, std::vector<int> Candidate_List, std::vector<int> RCL, int alpha){
+void Build_RCL(titem * itens, tsolution &Solution, std::vector<int> &Candidate_List, std::vector<int> &RCL, int alpha){
     int aux;
     RCL.clear();
+    printf("BUILD RCL\n");
 
     for (int i = 0; i < Candidate_List.size(); i++)
     {
@@ -90,10 +101,11 @@ void Build_RCL(titem * itens, tsolution Solution, std::vector<int> Candidate_Lis
     }
 }
 
-void Greedy_Randomized_Construction(titem * itens, tsolution Solution, int n, int Weight){
+void Greedy_Randomized_Construction(titem * itens, tsolution &Solution, int n, int Weight){
     int min, max, alpha, x, aux;
     std::vector<int> Candidate_List {0};
     std::vector<int> RCL {0};
+    printf("GREEDY RANDOMIZED CONSTRUCTION\n");
 
     // S <- NULL
     Solution.value = 0;
@@ -120,66 +132,16 @@ void Greedy_Randomized_Construction(titem * itens, tsolution Solution, int n, in
     }
 }
 
-void grasp(titem * itens, int Weight, int n, tsolution Best_Solution){
+void grasp(titem * itens, int Weight, int n, tsolution &Best_Solution){
     tsolution Solution;
+    printf("GRASP\n");
 
     for (int i = 0; i < 10; i++)
     {
+        printf("--------------- %d\n", i);
         Greedy_Randomized_Construction(itens, Solution, n, Weight);
         //Local_Search(Solution, itens, Weight, n);
         Update_Solution(Solution,Best_Solution);
+        Print_Solution(Solution);
     }
-}
-
-int main(){
-    char c[500];
-    int Weight, n, j;
-    int temp[4];
-    char *token;
-    FILE *arq;
-    arq = fopen("input.txt", "r");
-
-    // ------- ENTRADA DE DADOS ---------------
-
-    fgets(c, 500, arq);
-    Weight = atoi(c);
-
-    fgets(c, 500, arq);
-    n = atoi(c);
-
-    titem itens[n];
-
-    for(int i=0; i<n; i++){
-        j = 0;
-        fgets(c, 500, arq);
-        token = strtok(c, " ");
-
-        while (token != NULL) { 
-            temp[j] = atoi(token);
-            token = strtok(NULL, " "); 
-            j++;
-        }
-
-        itens[i].weight = temp[0];
-        itens[i].value = temp[1];
-        itens[i].partners.clear();
-        itens[i].partners.push_back(temp[2]);
-        itens[i].bonus = temp[3];
-    }
-
-    // -----------------------
-
-    tsolution Best_Solution;
-    Best_Solution.weight = 0;
-    Best_Solution.value = 0;
-
-    grasp(itens, Weight, n, Best_Solution);
-
-    printf("%d\n", Best_Solution.value);
-    printf("%d\n", Best_Solution.weight);
-    for (int i = 0; i < Best_Solution.item_id.size(); i++)
-    {
-        printf("%d\n", Best_Solution.item_id[i]);
-    }
-    
 }

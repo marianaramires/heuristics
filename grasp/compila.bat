@@ -1,6 +1,6 @@
 @echo off
 
 echo Compilando...
-gcc -pedantic -g -o main.exe ./src/hash.c ./src/heap.c ./src/json.c ./src/kdtree.c ./main.c
+g++ -pedantic -g -o main.exe ./src/grasp.cpp ./main.cpp
 
-START main.exe municipios.json
+START main.exe
