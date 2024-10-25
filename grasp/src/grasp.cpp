@@ -8,6 +8,74 @@
 #include <iostream>
 #include "../include/lib.h"
 
+void Get_n(int &n){
+    char c[500];
+    FILE *arq;
+    arq = fopen("input.txt", "r");
+
+    // the reference of the instance
+    fgets(c, 500, arq);
+
+    // the number of variables
+    fgets(c, 500, arq);
+    n = atoi(c);
+}
+
+void Read_Instance(int &Capacity, int n, titem &itens){
+    char c[500];
+    int j;
+    int *temp = new int[n];
+    char *token;
+    FILE *arq;
+    arq = fopen("input.txt", "r");
+
+    // Reading "trash"
+    fgets(c, 500, arq);
+    fgets(c, 500, arq);
+
+    //the linear coefficients
+    fgets(c, 5000, arq);
+    token = strtok(c, " ");
+
+    itens.linear_coeficients.clear();
+    for (int i = 0; i < n; i++)
+    {
+        itens.linear_coeficients.push_back(atoi(token));
+        token = strtok(NULL, " "); 
+    }
+
+    // the quadratic coefficients
+    for (int i = 0; i < n-1; i++)
+    {
+        fgets(c, 5000, arq);
+        token = strtok(c, " ");
+        for (int j = i+1; j < n; j++)
+        {
+            itens.quadratic_coeficients[i][j-i-1] = atoi(token);
+            token = strtok(NULL, " ");
+        } 
+    }
+
+    // Reading "trash"
+    fgets(c, 500, arq);
+    fgets(c, 500, arq);
+
+    // the capacity of the knapsac
+    fgets(c, 500, arq);
+    Capacity = atoi(c);
+
+    //the coefficients of the capacity constraints
+    fgets(c, 5000, arq);
+    token = strtok(c, " ");
+
+    itens.capacity_constraints.clear();
+    for (int i = 0; i < n; i++)
+    {
+        itens.capacity_constraints.push_back(atoi(token));
+        token = strtok(NULL, " "); 
+    }    
+}
+
 void Print_Solution(tsolution Solution){
     for (int i = 0; i < Solution.item_id.size(); i++)
     {
@@ -29,7 +97,7 @@ void Update_Solution(tsolution Solution, tsolution Best_Solution) {
 
 // }
 
-int Partner_Check(int i, titem * itens, tsolution Solution){
+int Partner_Check(int i, titem *itens, tsolution Solution){
     int aux, flag;
     int j = 0;
     int limit = itens[i].partners.size();
@@ -46,7 +114,7 @@ int Partner_Check(int i, titem * itens, tsolution Solution){
     return itens[i].value;
 }
 
-void Initialize_Candidate_Set(titem * itens, std::vector<int> &Candidate_List, tsolution &Solution, int Weight, int n){
+void Initialize_Candidate_Set(titem *itens, std::vector<int> &Candidate_List, tsolution &Solution, int Capacity, int n){
     int flag;
     Candidate_List.clear();
     printf("INITIALIZE CANDIDATE SET\n");
@@ -54,14 +122,14 @@ void Initialize_Candidate_Set(titem * itens, std::vector<int> &Candidate_List, t
     for (int i = 0; i < n; i++)
     {
         flag = count(Solution.item_id.begin(), Solution.item_id.end(), i);
-        if (flag == 0 && itens[i].weight <= Weight)
+        if (flag == 0 && itens[i].weight <= Capacity)
         {
             Candidate_List.push_back(i);
         }
     }  
 }
 
-void Values_Min_Max(titem * itens, std::vector<int> Candidate_List, tsolution &Solution, int &min, int &max){
+void Values_Min_Max(titem *itens, std::vector<int> Candidate_List, tsolution &Solution, int &min, int &max){
     int aux;
     int v_min = itens[Candidate_List[0]].value;
     int v_max = itens[Candidate_List[0]].value;
@@ -86,7 +154,7 @@ void Values_Min_Max(titem * itens, std::vector<int> Candidate_List, tsolution &S
     max = v_max;
 }
 
-void Build_RCL(titem * itens, tsolution &Solution, std::vector<int> &Candidate_List, std::vector<int> &RCL, int alpha){
+void Build_RCL(titem *itens, tsolution &Solution, std::vector<int> &Candidate_List, std::vector<int> &RCL, int alpha){
     int aux;
     RCL.clear();
     printf("BUILD RCL\n");
@@ -101,7 +169,7 @@ void Build_RCL(titem * itens, tsolution &Solution, std::vector<int> &Candidate_L
     }
 }
 
-void Greedy_Randomized_Construction(titem * itens, tsolution &Solution, int n, int Weight){
+void Greedy_Randomized_Construction(titem *itens, tsolution &Solution, int n, int Capacity){
     int min, max, alpha, x, aux;
     std::vector<int> Candidate_List {0};
     std::vector<int> RCL {0};
@@ -112,9 +180,9 @@ void Greedy_Randomized_Construction(titem * itens, tsolution &Solution, int n, i
     Solution.weight = 0;
     Solution.item_id.clear();
 
-    Initialize_Candidate_Set(itens, Candidate_List, Solution, Weight,n);
+    Initialize_Candidate_Set(itens, Candidate_List, Solution, Capacity,n);
 
-    while (Solution.weight <= Weight || Candidate_List.size() > 0)
+    while (Solution.weight <= Capacity || Candidate_List.size() > 0)
     {
         // Finding Min and Max values from Candidate_List itens
         Values_Min_Max(itens, Candidate_List, Solution, min, max);
@@ -128,19 +196,19 @@ void Greedy_Randomized_Construction(titem * itens, tsolution &Solution, int n, i
         Solution.value += Partner_Check(RCL[x], itens, Solution);
         Solution.weight += itens[RCL[x]].weight;
         // Update the candidate set
-        Initialize_Candidate_Set(itens, Candidate_List, Solution, Weight-Solution.weight, n);
+        Initialize_Candidate_Set(itens, Candidate_List, Solution, Capacity-Solution.weight, n);
     }
 }
 
-void grasp(titem * itens, int Weight, int n, tsolution &Best_Solution){
+void grasp(titem *itens, int Capacity, int n, tsolution &Best_Solution){
     tsolution Solution;
     printf("GRASP\n");
 
     for (int i = 0; i < 10; i++)
     {
         printf("--------------- %d\n", i);
-        Greedy_Randomized_Construction(itens, Solution, n, Weight);
-        //Local_Search(Solution, itens, Weight, n);
+        Greedy_Randomized_Construction(itens, Solution, n, Capacity);
+        //Local_Search(Solution, itens, Capacity, n);
         Update_Solution(Solution,Best_Solution);
         Print_Solution(Solution);
     }
